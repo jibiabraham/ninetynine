@@ -1,0 +1,81 @@
+<script src="../assets/js/vendor/JSXTransformer.js"></script>
+<script src="../assets/js/vendor/react-with-addons.js"></script>
+
+<script type="text/jsx">
+	/** @jsx React.DOM */
+
+	var SECTIONTYPES = {
+		1: "p",
+		2: "figure",
+	}
+
+	var Editor = React.createClass({
+		onKeyPress: function(e){
+			console.log(this);
+		},
+	  getDefaultProps: function() {
+	    return {
+	      sections: []
+	    };
+	  },
+	  renderSection: function(data){
+	  	var sectionType = SECTIONTYPES[data.type];
+	  	if(sectionType === "p")
+	  		return <Paragraph text={data.text} key={data.key}/>
+	  	if(sectionType === "figure")
+	  		return <Figure src={data.src} caption={data.caption} key={data.key}/>
+	  },
+		render: function(){
+			var sections = this.props.sections;
+			return (
+				<article onKeyPress={this.onKeyPress}>
+					{sections.map(this.renderSection)}
+				</article>
+			)
+		}
+	});
+
+	var Paragraph = React.createClass({
+		onKeyPress: function(e){
+			if(e.which === 13){
+				e.preventDefault();
+			}
+		},
+	  getDefaultProps: function() {
+	    return {};
+	  },
+		render: function(){
+			return (
+				<p contentEditable="true" onKeyPress={this.onKeyPress}>{this.props.text}</p>
+			)
+		}
+	});
+
+	var Figure = React.createClass({
+	  getDefaultProps: function() {
+	    return {};
+	  },
+		render: function(){
+			return (
+				<figure>
+					<img src={this.props.src} />
+					<figcaption>{this.props.caption}</figcaption>
+				</figure>
+			)
+		}
+	});
+
+	var renderData = {
+		sections: [
+			{type: 1, text: "From server perhaps?", key: getUID()},
+			//{type: 2, src: 'https://s3.amazonaws.com/fi.geo.pgstatic/uploads/9142455214574ed6a300ebe0cfc8d32c.jpg', caption: "(Ana) Life is, in itself and forever, shipwreck. To be shipwrecked is not to drown."}
+		]
+	};
+
+  function getUID () {
+    // Yeah right ...
+    return "uid-" + ( Math.random() + '' ).substring( 2 );
+  }
+
+	React.renderComponent(<Editor sections={renderData.sections}/>, document.body);
+</script>
