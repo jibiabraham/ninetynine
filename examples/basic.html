@@ -17,28 +17,28 @@
 				this.setState({sections: this.state.sections});
 			}
 		},
-	  getComponentIndex: function(cmp) {
-	    var key = cmp.props.key, index = -1;
-	    for (var i = 0; i < this.state.sections.length; i++) {
-	    	if(this.state.sections[i].key === key){
-	    		index = i;
-	    		break;
-	    	}
-	    };
-	    return index;
-	  },
-	  getInitialState: function() {
-	    return {
-	      sections: []
-	    };
-	  },
-	  renderSection: function(data){
-	  	var sectionType = SECTIONTYPES[data.type];
-	  	if(sectionType === "p")
-	  		return <Paragraph content={data.content} key={data.key} onInsertParagraph={this.insertParagraph} />
-	  	if(sectionType === "figure")
-	  		return <Figure src={data.src} caption={data.caption} key={data.key}/>
-	  },
+	  	getComponentIndex: function(cmp) {
+		    var key = cmp.props.key, index = -1;
+		    for (var i = 0; i < this.state.sections.length; i++) {
+		    	if(this.state.sections[i].key === key){
+		    		index = i;
+		    		break;
+		    	}
+		    };
+		    return index;
+		},
+		getInitialState: function() {
+			return {
+				sections: []
+			};
+		},
+		renderSection: function(data){
+			var sectionType = SECTIONTYPES[data.type];
+			if(sectionType === "p")
+				return <Paragraph content={data.content} key={data.key} onInsertParagraph={this.insertParagraph} />
+			if(sectionType === "figure")
+				return <Figure src={data.src} caption={data.caption} key={data.key}/>
+		},
 		render: function(){
 			var sections = this.state.sections;
 			return (

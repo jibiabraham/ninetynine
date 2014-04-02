@@ -1,52 +1,16 @@
+<article>
+	<p id="base"></p>
+</article>
+<div id="controls"></div>
+
 <script src="../assets/js/vendor/JSXTransformer.js"></script>
 <script src="../assets/js/vendor/react-with-addons.js"></script>
-
-<script type="text/javascript">
-	var utils = {};
-	utils.getSelectedText = function(){
-	  var txt = '';
-	  if (window.getSelection) {
-	    txt = window.getSelection().toString();
-	  }
-	  else if (document.getSelection) {
-	    txt = document.getSelection().toString();
-	  }
-	  else if (document.selection) {
-	    txt = document.selection.createRange().text;
-	  }
-	  else return; 
-	  return txt;
-	};
-
-	utils.selection = {
-    saveSelection: function() {
-      if (w.getSelection) {
-        var sel = w.getSelection();
-        if (sel.rangeCount > 0) {
-          return sel.getRangeAt(0);
-        }
-      } else if (d.selection && d.selection.createRange) { // IE
-        return d.selection.createRange();
-      }
-      return null;
-    },
-    restoreSelection: function(range) {
-      if (range) {
-        if (w.getSelection) {
-          var sel = w.getSelection();
-          sel.removeAllRanges();
-          sel.addRange(range);
-        } else if (d.selection && range.select) { // IE
-          range.select();
-        }
-      }
-    }
-  };
-</script>
+<script src="../assets/js/shims.js"></script>
+<script src="../assets/js/vendor/rangy.js">rangy.init()</script>
+<script src="../assets/js/utils.js"></script>
 
 <script type="text/jsx">
 	/** @jsx React.DOM */
-
 	var emphasise = React.createClass({
 		render: function(){
 			return <em>{this.props.content}</em>
@@ -66,35 +30,68 @@
 	});
 
 	var paragraph = React.createClass({
+		controls: null,
 		onKeyUp: function(e){
 			var hasSelection = utils.getSelectedText().length > 0;
-			console.log(hasSelection)
-			if(hasSelection){
-				this.controls && React.unmountComponentAtNode(this.controls.getDomeNode());
-				this.controls = React.renderComponent(<controls />, document.body);
+			if(hasSelection && !this.controls){
+				this.controls = React.renderComponent(<controls />, utils.gebi("controls"));
+			}
+			if(hasSelection && !this.controls.isMounted()){
+				React.renderComponent(this.controls, utils.gebi("controls"));
+			} else if((!hasSelection && this.controls) && this.controls.isMounted()) {
+				React.unmountComponentAtNode(utils.gebi("controls"));
 			}
 		},
-	  getInitialState: function() {
+	  getDefaultProps: function() {
 	    return {
 	      content: []
 	    };
 	  },
 		render: function(){
-			return <p contentEditable={this.props.editable} onKeyUp={this.onKeyUp}>{this.state.content}</p>
+			return <p contentEditable={this.props.editable} onKeyUp={this.onKeyUp}>{this.props.content}</p>
 		}
 	});
 
 	var controls = React.createClass({
-		getInitialProps: function(){
+		onStrong: function(range){
+			var hasSelection = range.toString().length > 0, contents, walker;
+			if(hasSelection){
+				contents = utils.wrap(range.cloneContents());
+				console.log(contents)
+				walker = document.createTreeWalker(
+					contents, 
+					NodeFilter.SHOW_TEXT,
+					function(node) { return NodeFilter.FILTER_ACCEPT; },
+					false);
+				window.x = walker;
+			}
+		},
+		execAction: function(action){
+			var range = rangy.getSelection(), perform;
+			if (range.rangeCount !== 0) {
+        range = range.getRangeAt(0);
+        //range.toString().length > 0 && range.deleteContents();
+        perform = this["on" + action];
+        typeof perform === "function" && perform(range);
+			}
+		},
+		onMouseDown: function(e){
+			var action = e.currentTarget.dataset.action.replace(/\w\S*/g, function(txt){
+				return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+			});
+			e.preventDefault();
+			this.execAction(action);
+		},
+		getDefaultProps: function(){
 			return {
-				controls: ["bold", "italic", "underline", "link"]
+				controls: ["strong", "emphasise", "underline", "link"]
 			}
 		},
 		render: function(){
 			return (
 				<ul>
-					{this.props.controls.forEach(function(d){
-						return <li data-action={d} onClick={this.onClick}>d</li>
+					{this.props.controls.map(function(d){
+						return <li data-action={d} onMouseDown={this.onMouseDown}>{d}</li>
 					}.bind(this))}
 				</ul>
 			);
@@ -113,6 +110,5 @@
 		". Without further ado, let me hand over to Claudia. Claudia..."
 	];
 
-	var editor = React.renderComponent(<paragraph editable={true}/>, document.body);
-	editor.setState({content: sectionData});
+	var editor = React.renderComponent(<paragraph editable={true} content={sectionData}/>, utils.gebi("base"));
 </script>
