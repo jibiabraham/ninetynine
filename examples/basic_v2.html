@@ -1,0 +1,118 @@
+<script src="../assets/js/vendor/JSXTransformer.js"></script>
+<script src="../assets/js/vendor/react-with-addons.js"></script>
+
+<script type="text/javascript">
+	var utils = {};
+	utils.getSelectedText = function(){
+	  var txt = '';
+	  if (window.getSelection) {
+	    txt = window.getSelection().toString();
+	  }
+	  else if (document.getSelection) {
+	    txt = document.getSelection().toString();
+	  }
+	  else if (document.selection) {
+	    txt = document.selection.createRange().text;
+	  }
+	  else return; 
+	  return txt;
+	};
+
+	utils.selection = {
+    saveSelection: function() {
+      if (w.getSelection) {
+        var sel = w.getSelection();
+        if (sel.rangeCount > 0) {
+          return sel.getRangeAt(0);
+        }
+      } else if (d.selection && d.selection.createRange) { // IE
+        return d.selection.createRange();
+      }
+      return null;
+    },
+    restoreSelection: function(range) {
+      if (range) {
+        if (w.getSelection) {
+          var sel = w.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        } else if (d.selection && range.select) { // IE
+          range.select();
+        }
+      }
+    }
+  };
+</script>
+
+<script type="text/jsx">
+	/** @jsx React.DOM */
+
+	var emphasise = React.createClass({
+		render: function(){
+			return <em>{this.props.content}</em>
+		}
+	});
+
+	var stronger = React.createClass({
+		render: function(){
+			return <strong>{this.props.content}</strong>
+		}
+	});
+
+	var anchor = React.createClass({
+		render: function(){
+			return <a href={this.props.href}>{this.props.content}</a>
+		}
+	});
+
+	var paragraph = React.createClass({
+		onKeyUp: function(e){
+			var hasSelection = utils.getSelectedText().length > 0;
+			console.log(hasSelection)
+			if(hasSelection){
+				this.controls && React.unmountComponentAtNode(this.controls.getDomeNode());
+				this.controls = React.renderComponent(<controls />, document.body);
+			}
+		},
+	  getInitialState: function() {
+	    return {
+	      content: []
+	    };
+	  },
+		render: function(){
+			return <p contentEditable={this.props.editable} onKeyUp={this.onKeyUp}>{this.state.content}</p>
+		}
+	});
+
+	var controls = React.createClass({
+		getInitialProps: function(){
+			return {
+				controls: ["bold", "italic", "underline", "link"]
+			}
+		},
+		render: function(){
+			return (
+				<ul>
+					{this.props.controls.forEach(function(d){
+						return <li data-action={d} onClick={this.onClick}>d</li>
+					}.bind(this))}
+				</ul>
+			);
+		}
+	});
+
+	var sectionData = [
+		"We finally have a newer version of our article editor up and running. Currently available only to a select few users, it will soon be opened to all. For those of you who don't think it is a big deal, you can safely skip to the TLDR; version at the end of this page (",
+		<emphasise content="sniggers" />,
+		"). I'm just highlighting some major changes and feature additions in this article. I defer to the ",
+		<stronger content="Editor "/>,
+		"herself to outline the changes she's undergone in the last few months. Please note, she does not like being referred to as ",
+		<emphasise content="it "/>,
+		"and for some reason has suddenly taken to the idea of being called ",
+		<anchor href="http://en.wikipedia.org/wiki/Claudia" content={<emphasise content="Claudia"/>}/>,
+		". Without further ado, let me hand over to Claudia. Claudia..."
+	];
+
+	var editor = React.renderComponent(<paragraph editable={true}/>, document.body);
+	editor.setState({content: sectionData});
+</script>

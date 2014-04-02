@@ -1,20 +1,6 @@
 <script src="../assets/js/vendor/JSXTransformer.js"></script>
 <script src="../assets/js/vendor/react-with-addons.js"></script>
 
-<script type="text/javascript">
-	
-	var renderData = {
-		sections: [
-			{type: 1, text: "From server perhaps?", key: getUID()},
-			//{type: 2, src: 'https://s3.amazonaws.com/fi.geo.pgstatic/uploads/9142455214574ed6a300ebe0cfc8d32c.jpg', caption: "(Ana) Life is, in itself and forever, shipwreck. To be shipwrecked is not to drown."}
-		]
-	};
-
-  function getUID () {
-    // Yeah right ...
-    return "uid-" + ( Math.random() + '' ).substring( 2 );
-  }
-</script>
 <script type="text/jsx">
 	/** @jsx React.DOM */
 
@@ -49,7 +35,7 @@
 	  renderSection: function(data){
 	  	var sectionType = SECTIONTYPES[data.type];
 	  	if(sectionType === "p")
-	  		return <Paragraph text={data.text} key={data.key} onInsertParagraph={this.insertParagraph} />
+	  		return <Paragraph content={data.content} key={data.key} onInsertParagraph={this.insertParagraph} />
 	  	if(sectionType === "figure")
 	  		return <Figure src={data.src} caption={data.caption} key={data.key}/>
 	  },
@@ -73,8 +59,22 @@
 		render: function(){
 			return (
 				<p onKeyPress={this.onKeyPress}>
-					{this.props.text ? this.props.text : <br/>}
+					{this.props.content ? this.props.content : <br/>}
 				</p>
+			)
+		}
+	});
+
+	var Anchor = React.createClass({
+		onKeyPress: function(e){
+			if(e.which === 13){
+				/*e.preventDefault();
+				this.props.onInsertParagraph(e, this);*/
+			}
+		},
+		render: function(){
+			return (
+				<a href={this.props.href}>{this.props.content}</a>
 			)
 		}
 	});
@@ -89,6 +89,23 @@
 			)
 		}
 	});
+
+
+	var renderData = {
+		sections: [
+			{
+				type: 1, 
+				content: ["This is some text with a link to ", <Anchor href="google.com" content="Google"/>, " in it"],
+				key: getUID()
+			},
+			//{type: 2, src: 'https://s3.amazonaws.com/fi.geo.pgstatic/uploads/9142455214574ed6a300ebe0cfc8d32c.jpg', caption: "(Ana) Life is, in itself and forever, shipwreck. To be shipwrecked is not to drown."}
+		]
+	};
+
+  function getUID () {
+    // Yeah right ...
+    return "uid-" + ( Math.random() + '' ).substring( 2 );
+  }
 
 	var editor = React.renderComponent(<Editor/>, document.body);
 	editor.setState(renderData)
